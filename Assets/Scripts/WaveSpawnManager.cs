@@ -13,7 +13,7 @@ public class Wave
     public int numberOfStunPower;
 }
 
-public class SpawnManager : MonoBehaviour
+public class WaveSpawnManager : MonoBehaviour
 {
     public List<Wave> waves;
     public Transform[] spawnPoints;
@@ -47,7 +47,7 @@ public class SpawnManager : MonoBehaviour
 
             if (activePoints.Count == 0)
             {
-                Debug.LogError("🚨 Error: ไม่พบจุดเกิดศัตรู (Spawn Points)");
+                Debug.LogError(" Error: ไม่พบจุดเกิดศัตรู (Spawn Points)");
                 yield break;
             }
 
