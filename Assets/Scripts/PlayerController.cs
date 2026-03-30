@@ -7,14 +7,15 @@ public class PlayerController : MonoBehaviour
 {
     public float speed = 5f;
     public Transform focalPoint;
+    public bool hasPowerUp = false;
+    public GameObject powerupIndicator;
 
     private Rigidbody rb;
 
     private InputAction moveAction;
     private InputAction smashAction;
     private InputAction breakAction;
-
-    public bool hasPowerUp = false;
+    private object countdownRountine;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -35,7 +36,12 @@ public class PlayerController : MonoBehaviour
         {
             rb.linearVelocity = Vector3.zero;
         }
-     
+
+        if (powerupIndicator != null && powerupIndicator.activeSelf)
+        {
+            powerupIndicator.transform.position = transform.position + new Vector3(0, -0.5f, 0);
+        }
+
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -56,22 +62,25 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("PowerUp"))
         {
             hasPowerUp = true;
+
+            powerupIndicator.SetActive(true);
+
             Destroy(other.gameObject);
 
             if (countdownRountine != null)
             {
-                StopCoroutine(countdownRountine);
+                object countdownRountine1 = countdownRountine;
+                StopCoroutine(PowerUpCountDown());
             }
-            StartCoroutine(PowerUpCountDown());
+            countdownRountine = StartCoroutine(PowerUpCountDown());
         }
     }
-
-    private Coroutine countdownRountine;
 
     IEnumerator PowerUpCountDown()
     {
         yield return new WaitForSeconds(10f);
         hasPowerUp = false;
 
+        powerupIndicator.SetActive(false);
     }
 }
