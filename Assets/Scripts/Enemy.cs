@@ -21,11 +21,19 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
+        // 1. เช็คก่อนว่าโดน Stun ไหม ถ้าโดนให้หยุดขยับ
         if (isStunned) return;
 
+        // 2. เดินพุ่งเข้าหา Player
         Vector3 dir = player.transform.position - transform.position;
         dir.Normalize();
         rb.AddForce(dir * speed);
+
+        // 3. ถ้าศัตรูโดนชนร่วงตกแมพ (ความสูง Y ต่ำกว่า -10) ให้ทำลายตัวเองทิ้งซะ!
+        if (transform.position.y < -10f)
+        {
+            Destroy(gameObject);
+        }
     }
 
     public void ApplyStun(float duration)
