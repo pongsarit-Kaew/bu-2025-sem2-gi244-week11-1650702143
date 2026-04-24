@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviour
     private InputAction moveAction;
     private InputAction smashAction;
     private InputAction breakAction;
-    private object countdownRountine;
+    private Coroutine countdownRoutine; // เปลี่ยนจาก object เป็น Coroutine เพื่อให้หยุดเวลาได้ถูกต้อง
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -27,21 +27,30 @@ public class PlayerController : MonoBehaviour
         breakAction = InputSystem.actions.FindAction("Break");
     }
 
-    // Update is called once per frame
+    // Update จัดการเรื่องภาพและเอฟเฟกต์ (ทำงานตามเฟรมเรตคอมพิวเตอร์)
     void Update()
     {
-        var move = moveAction.ReadValue<Vector2>();
-        rb.AddForce(move.y * speed * focalPoint.forward);
-        if (breakAction.IsPressed())
-        {
-            rb.linearVelocity = Vector3.zero;
-        }
-
+        // อัปเดตตำแหน่งวงแหวน PowerUp ให้ตามตัวผู้เล่น
         if (powerupIndicator != null && powerupIndicator.activeSelf)
         {
             powerupIndicator.transform.position = transform.position + new Vector3(0, -0.5f, 0);
         }
+    }
 
+    // FixedUpdate จัดการเรื่องแรงและฟิสิกส์ (ทำงานด้วยความเร็วคงที่เสมอ เท่ากันทุกเครื่อง!)
+    void FixedUpdate()
+    {
+        // 1. อ่านค่าปุ่มเดิน
+        var move = moveAction.ReadValue<Vector2>();
+
+        // 2. ออกแรงผลักลูกบอล
+        rb.AddForce(move.y * speed * focalPoint.forward);
+
+        // 3. ระบบเบรก
+        if (breakAction.IsPressed())
+        {
+            rb.linearVelocity = Vector3.zero;
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -50,9 +59,9 @@ public class PlayerController : MonoBehaviour
         {
             if (hasPowerUp == true)
             {
-                var rb = collision.gameObject.GetComponent<Rigidbody>();
+                var enemyRb = collision.gameObject.GetComponent<Rigidbody>();
                 var dir = collision.transform.position - transform.position;
-                rb.AddForce(100 * dir.normalized, ForceMode.Impulse);
+                enemyRb.AddForce(100 * dir.normalized, ForceMode.Impulse);
             }
         }
     }
@@ -62,17 +71,15 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("PowerUp"))
         {
             hasPowerUp = true;
-
             powerupIndicator.SetActive(true);
-
             Destroy(other.gameObject);
 
-            if (countdownRountine != null)
+            // ถ้าระบบกำลังนับเวลา PowerUp อันเก่าอยู่ ให้สั่งหยุดก่อน แล้วค่อยเริ่มนับ 10 วิใหม่
+            if (countdownRoutine != null)
             {
-                object countdownRountine1 = countdownRountine;
-                StopCoroutine(PowerUpCountDown());
+                StopCoroutine(countdownRoutine);
             }
-            countdownRountine = StartCoroutine(PowerUpCountDown());
+            countdownRoutine = StartCoroutine(PowerUpCountDown());
         }
     }
 
@@ -80,7 +87,6 @@ public class PlayerController : MonoBehaviour
     {
         yield return new WaitForSeconds(10f);
         hasPowerUp = false;
-
         powerupIndicator.SetActive(false);
     }
 }
